@@ -415,9 +415,11 @@ class Gmtf:
         Input gradient triangular waveforms with shape `(n_rise_times n_adc_samples)` (read only)
     grad_output
         Measured output gradient waveforms with shape `(n_rise_times n_adc_samples)` (read only)
+    grad_time
+        Time vector for gradient input and output with shape `(n_adc_samples)` (read only)
     """
 
-    __slots__ = ('_grad_input', '_grad_output', 'frequency', 'gmtf')
+    __slots__ = ('_grad_input', '_grad_output', '_grad_time', 'frequency', 'gmtf')
 
     def __init__(self, gmtf_x: np.ndarray, gmtf_y: np.ndarray, gmtf_z: np.ndarray, frequency: np.ndarray) -> None:
         """
@@ -458,6 +460,7 @@ class Gmtf:
         self.frequency = frequency
         self._grad_input: np.ndarray | None = None
         self._grad_output: np.ndarray | None = None
+        self._grad_time: np.ndarray | None = None
 
     @property
     def grad_input(self):
@@ -468,6 +471,11 @@ class Gmtf:
     def grad_output(self):
         """Measured gradient waveforms."""
         return self._grad_output
+
+    @property
+    def grad_time(self):
+        """Time vector for gradient input and output."""
+        return self._grad_time
 
     @classmethod
     def compute_gmtf(cls, mrd_file: str | Path, seq_file: str | Path) -> 'Gmtf':
@@ -544,6 +552,7 @@ class Gmtf:
         gmtf_obj = Gmtf(gmtf_x=gmtf[0, :], gmtf_y=gmtf[1, :], gmtf_z=gmtf[2, :], frequency=frequency)
         gmtf_obj._grad_output = grad_output_mean
         gmtf_obj._grad_input = grad_input
+        gmtf_obj._grad_time = np.linspace(0.0, grad_input.shape[-1] * dwell_time, grad_input.shape[-1])
         return gmtf_obj
 
     def plot(
